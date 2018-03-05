@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Pizza Factory</title>
+
+    <link rel="stylesheet" type="text/css" href="css/app.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <script src="./node_modules/web3/dist/web3.min.js"></script>
+    <script src="js/app.js"></script>
+
+</head>
+<body>
+<div class="container">
+
+    <h1><img id="loader" src="https://loading.io/s/icon/tq31hh.png">Pizza Factory</h1>
+
+    <div class="jumbotron ">
+        <h2 id="status"></h2>
+    </div>
+
+    <div class="input-group mb-3">
+        <input id="amount"  type="text" class="form-control" placeholder="Amount to pay" aria-label="Amount to pay" aria-describedby="basic-addon2">
+        <div class="input-group-append">
+            <button id="payForPizza" class="btn btn-outline-secondary" type="button">Pay for Pizza</button>
+        </div>
+    </div>
+
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <button id="getRefund" class="btn btn-outline-secondary" type="button">Get Refund</button>
+            <button id="getAmountPaid" class="btn btn-outline-secondary" type="button">Get Amount Paid</button>
+            <button id="getAmountRemaining" class="btn btn-outline-secondary" type="button">Get Amount Remaining</button>
+        </div>
+        <div class="input-group-append">
+            <button id="getTotalAmountPaid" class="btn btn-outline-secondary" type="button">Get Total Amount Paid</button>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+
+<script>
+  // Ricardo Aponte
+  // Solidity Workshop for Link Puerto Rico
+
+  var defaultGas = 3000000;
+
+  // Get Test RPC (Ganache Client)
+  web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+  const localAccount = web3.eth.accounts[1];
+  //web3.eth.defaultAccount = web3.eth.accounts[1];
+
+  // Create Contract Object
+  var PizzaFactoryContract = web3.eth.contract(abi);
+
+  // Create Contract
+  var PizzaFactory = PizzaFactoryContract.at(contractAddress);
+
+  // Declare Events
+  var RefundProcessed = PizzaFactory.RefundProcessed();
+  var RefundNotProcessed = PizzaFactory.RefundNotProcessed();
+  var PizzaPaid = PizzaFactory.PizzaPaid();
+
+  // Watch Refund Event
+  RefundProcessed.watch(function(error, result) {
+    if (!error) {
+      $("#status").html("A refund was process for address " +  result.args._to + " (" + result.args._amount.toString() + ")");
+    } else {
+      console.log(error);
+    }
+  });
+
+  // Watch Refund Not Processes Event
+  RefundNotProcessed.watch(function(error, result) {
+    if (!error) {
+      $("#status").html(result.args._reason);
+    } else {
+      console.log(error);
+    }
+  });
+
+  // Watch Pizza Paid Event
+  PizzaPaid.watch(function(error, result){
+    if (!error) {
+      $("#status").html("You paid " + result.args._amount.toString());
+    } else {
+      console.log(error);
+    }
+  });
+
+   // Get Pizza Name
+  function getPizzaName() {
+    PizzaFactory.pizza(function(error, result) {
+      $("#status").html("The pizza " + result[0] + " costs: " + result[1]);
+    });
+  }
+
+  $(document).ready(function() {
+
+    getPizzaName();
+
+    $("#getAmountRemaining").click(function() {
+      PizzaFactory.getAmountRemaining(function(error, result) {
+        if (error) {
+          console.log(error);
+        } else {
+          $("#status").html("Amount remaining: " + result.toString());
+        }
+      });
+    });
+
+    $("#getTotalAmountPaid").click(function() {
+      PizzaFactory.totalAmountPaid(function(error, result) {
+        if (error) {
+          console.log(error);
+        } else {
+          $("#status").html("Total Amount Paid: " + result.toString());
+        }
+      });
+    });
+
+    $("#payForPizza").click(function() {
+      var options = {
+        from: localAccount,
+        gas: defaultGas,
+        value: $("#amount").val()
+      };
+
+      PizzaFactory.payForPizza(options, function(error) {
+        if (error) {
+          console.log(error);
+        }
+      })
+    });
+
+    // Get Refund to this account;
+    $("#getRefund").click(function() {
+      var options = {
+        from: localAccount,
+        gas: defaultGas
+      };
+
+      PizzaFactory.refundPayment(options, function(error) {
+        if (error) {
+          console.log(error);
+        }
+      })
+    });
+
+    // Get the Amount Paid this account
+    $("#getAmountPaid").click(function() {
+      var options = {
+        from: localAccount
+      };
+      PizzaFactory.getAmountPaid(options, function(error, result) {
+        if (error) {
+          console.log(error);
+        } else {
+          $("#status").html("You have paid: " + result.toString());
+        }
+      })
+    });
+
+  });
+
+</script>
+
+</body>
+</html>
