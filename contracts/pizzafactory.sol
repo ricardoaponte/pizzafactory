@@ -1,6 +1,6 @@
 /*
 
-PizzaPlace Contract
+PizzaFactory Contract
 Ricardo Aponte-Yunqué 2018
 Link Puerto Rico Smart Contracts Workshop
 
