@@ -10,15 +10,16 @@ Items to point out:
 2. Events
 3. Modifiers
 4. Structs
-5. Areas of storage: memory, storage, stack
-6. Loops vs Mappings
-7. Guard functions: require, assert, revert
-8. Function visibility:
+5. Libraries
+6. Areas of storage: memory, storage, stack
+7. Loops vs Mappings
+8. Guard functions: require, assert, revert
+9. Function visibility:
     public: Public functions are part of the contract interface and can be either called internally or via messages. For public state variables, an automatic getter function (see below) is generated.
     internal (protected): Those functions and state variables can only be accessed internally (i.e. from within the current contract or contracts deriving from it), without using this.
     private: Private functions and state variables are only visible for the contract they are defined in and not in derived contracts.
     external: External functions are part of the contract interface, which means they can be called from other contracts and via transactions. An external function f cannot be called internally (i.e. f() does not work, but this.f() works). External functions are sometimes more efficient when they receive large arrays of data.
-9. Naming conventions
+10. Naming conventions
 
 Resources:
 
