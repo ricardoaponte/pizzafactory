@@ -23,7 +23,6 @@ Items to point out:
 Resources:
 
 OpenZeppelin: https://github.com/OpenZeppelin
-
 Style Guide: http://solidity.readthedocs.io/en/develop/style-guide.html
 Security Considerations: http://solidity.readthedocs.io/en/develop/security-considerations.html
 
@@ -45,6 +44,8 @@ contract PizzaFactory is Ownable {
     event RefundNotProcessed(string _reason);
     event PizzaPaid(address _from, uint _amount);
     event PizzaBeingMade();
+
+    using SafeMath for uint;
 
     // TODO: Add more info to Participant struct (Tip: Full Name)
     struct Participant {
@@ -68,10 +69,6 @@ contract PizzaFactory is Ownable {
         owner = msg.sender;
     }
 
-    function getBalance() onlyOwner public view returns(uint) {
-        return this.balance;
-    }
-
     // Make sure that the sender is not the owner
     modifier isNotOwner() {
         require(msg.sender != owner);
@@ -83,8 +80,8 @@ contract PizzaFactory is Ownable {
         // TODO: Go make pizza if it is all paid for.
         // TODO: Check if payment is less or equal to the remaining pizza price before accepting the payment.
         require(totalAmountPaid < pizza.price);
-        users[msg.sender].amountPaid += msg.value;
-        totalAmountPaid += msg.value;
+        users[msg.sender].amountPaid = users[msg.sender].amountPaid.add(msg.value);
+        totalAmountPaid = totalAmountPaid.add(msg.value);
 
         //Emit pizzaPayed Event
         PizzaPaid(msg.sender, msg.value);
@@ -94,7 +91,7 @@ contract PizzaFactory is Ownable {
     function refundPayment() isNotOwner public payable {
         uint amountToRefund = users[msg.sender].amountPaid;
         if (amountToRefund > 0) {
-            totalAmountPaid -= amountToRefund;
+            totalAmountPaid = totalAmountPaid.sub(amountToRefund);
             users[msg.sender].amountPaid = 0;
             msg.sender.transfer(amountToRefund);
             RefundProcessed(msg.sender, amountToRefund);
@@ -129,7 +126,6 @@ contract PizzaFactory is Ownable {
             return "Your Pizza is being prepared, thank you for your bussiness!";
         }
     }
-
 }
 
 
